@@ -284,16 +284,11 @@
       const token = await getTurnstileToken();
       if(!token) throw new Error('no verification token');
       const resp = await fetch(TURN_WORKER_URL + '?token=' + encodeURIComponent(token));
-      if(!resp.ok){
-        const bodyText = await resp.text().catch(()=>'(could not read body)');
-        console.error('Worker responded with', resp.status, bodyText);
-        throw new Error('worker error: ' + resp.status + ' ' + bodyText);
-      }
+      if(!resp.ok) throw new Error('worker error');
       const data = await resp.json();
       if(!data.iceServers || !Array.isArray(data.iceServers)) throw new Error('bad shape');
       return { iceServers: data.iceServers };
     }catch(e){
-      console.warn('TURN fetch failed, falling back to STUN-only:', e);
       return STUN_ONLY;
     }
   }
@@ -352,7 +347,7 @@
     document.getElementById('hostStatus').textContent = 'Preparing connection…';
     const iceConfig = await getIceConfig();
 
-    peer = new Peer(peerId, { debug: 1, config: iceConfig });
+    peer = new Peer(peerId, { debug: 0, config: iceConfig });
     peer.on('open', ()=>{
       document.getElementById('hostStatus').textContent = 'Waiting for opponent to connect…';
     });
@@ -379,7 +374,7 @@
 
     const iceConfig = await getIceConfig();
 
-    peer = new Peer(undefined, { debug: 1, config: iceConfig });
+    peer = new Peer(undefined, { debug: 0, config: iceConfig });
     peer.on('open', ()=>{
       conn = peer.connect(peerId, { reliable:true });
       conn.on('open', ()=>{
