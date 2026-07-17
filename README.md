@@ -2,7 +2,7 @@
 
 A neon, zero-gravity artillery duel for two players — think *Worms* meets *Scorched Earth*, wrapped in a synthwave sci-fi skin. Built as a single self-contained HTML file with real-time peer-to-peer multiplayer, no server, no backend, no install.
 
-Play it live: **[zeekecc.github.io/ndonline](https://zeekecc.github.io/novaduel/)**
+Play it live: **[zeekecc.github.io/novaduel](https://zeekecc.github.io/novaduel/)**
 
 ![status](https://img.shields.io/badge/status-active-brightgreen) ![type](https://img.shields.io/badge/type-single--file%20HTML5-blueviolet) ![network](https://img.shields.io/badge/multiplayer-P2P%20WebRTC-26e6ff)
 
