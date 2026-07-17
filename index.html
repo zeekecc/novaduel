@@ -153,8 +153,10 @@
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
-<div class="hdr"><div class="dot"></div><h1>NOVA DUEL <span style="font-size:12px;color:var(--p2-glow);vertical-align:middle;">ONLINE</span></h1><button id="muteBtn" style="padding:6px 12px;font-size:11px;margin-left:14px;">🔊 SOUND</button></div>
-<div id="turnstileBox" style="position:fixed;bottom:8px;right:8px;z-index:999;"></div>
+<div class="hdr"><div class="dot"></div><h1>NOVA DUEL <span style="font-size:12px;color:var(--p2-glow);vertical-align:middle;">ONLINE</span></h1><button id="sfxBtn" style="padding:6px 12px;font-size:11px;margin-left:14px;">🔊 SFX</button><button id="musicBtn" style="padding:6px 12px;font-size:11px;margin-left:8px;">🎵 MUSIC</button></div>
+<div id="turnstileOverlay" style="display:none; position:fixed; inset:0; z-index:999; background:rgba(3,4,10,.85); align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+  <div id="turnstileBox"></div>
+</div>
 <div id="wrap">
   <div id="msg"></div>
   <canvas id="game" width="920" height="520"></canvas>
@@ -249,6 +251,8 @@
   let turnstileWidgetId = null;
   let turnstileResolve = null;
   function getTurnstileToken(){
+    const overlay = document.getElementById('turnstileOverlay');
+    overlay.style.display = 'flex';
     const tokenPromise = new Promise((resolve)=>{
       turnstileResolve = resolve;
       if(!window.turnstile){ resolve(null); return; }
@@ -269,7 +273,10 @@
     const timeoutPromise = new Promise((resolve)=>{
       setTimeout(()=> resolve(null), 15000);
     });
-    return Promise.race([tokenPromise, timeoutPromise]);
+    return Promise.race([tokenPromise, timeoutPromise]).then((token)=>{
+      overlay.style.display = 'none';
+      return token;
+    });
   }
 
   async function getIceConfig(){
@@ -331,6 +338,7 @@
     try{ if(conn) conn.close(); }catch(e){}
     try{ if(peer) peer.destroy(); }catch(e){}
     peer=null; conn=null; connected=false;
+    Sound.stopMusic();
     showScreen('screen-menu');
   }
 
@@ -401,6 +409,7 @@
     conn.on('close', onDisconnect);
     conn.on('error', onDisconnect);
     hideOverlay();
+    Sound.startMusic();
     if(isHost){
       newRound(true);
     } else {
@@ -411,6 +420,7 @@
   function onDisconnect(){
     if(!connected) return;
     connected = false;
+    Sound.stopMusic();
     document.getElementById('errorText').textContent = 'The connection to your opponent was interrupted.';
     showScreen('screen-error');
   }
@@ -441,7 +451,8 @@
 
   const Sound = (function(){
     let ctx = null;
-    let muted = false;
+    let sfxMuted = false;
+    let musicMuted = false;
     let musicNodes = null;
     let musicTimer = null;
 
@@ -467,7 +478,7 @@
     }
 
     function fire(){
-      if(muted) return;
+      if(sfxMuted) return;
       const c = ensureCtx();
       resumeCtx();
       const t0 = c.currentTime;
@@ -486,7 +497,7 @@
     }
 
     function explosion(){
-      if(muted) return;
+      if(sfxMuted) return;
       const c = ensureCtx();
       resumeCtx();
       const t0 = c.currentTime;
@@ -595,7 +606,7 @@
 
       let globalStep = 0;
       function playStep(){
-        if(muted) return;
+        if(musicMuted) return;
         const t0 = c.currentTime;
         const bar = Math.floor(globalStep/8) % 4;
         const s = globalStep % 8;
@@ -628,27 +639,38 @@
       if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
     }
 
-    function toggleMute(){
-      muted = !muted;
-      return muted;
+    function toggleSfxMute(){
+      sfxMuted = !sfxMuted;
+      return sfxMuted;
     }
 
-    return { fire, explosion, startMusic, stopMusic, toggleMute, ensureCtx };
+    function toggleMusicMute(){
+      musicMuted = !musicMuted;
+      return musicMuted;
+    }
+
+    return { fire, explosion, startMusic, stopMusic, toggleSfxMute, toggleMusicMute, ensureCtx };
   })();
 
-  const muteBtn = document.getElementById('muteBtn');
-  let audioStarted = false;
-  function startAudioOnce(){
-    if(audioStarted) return;
-    audioStarted = true;
+  const sfxBtn = document.getElementById('sfxBtn');
+  const musicBtn = document.getElementById('musicBtn');
+  let audioContextStarted = false;
+  function startAudioContextOnce(){
+    if(audioContextStarted) return;
+    audioContextStarted = true;
     Sound.ensureCtx();
-    Sound.startMusic();
   }
-  document.body.addEventListener('click', startAudioOnce, { once:true });
-  muteBtn.addEventListener('click', ()=>{
-    startAudioOnce();
-    const isMuted = Sound.toggleMute();
-    muteBtn.textContent = isMuted ? '🔇 MUTED' : '🔊 SOUND';
+  document.body.addEventListener('click', startAudioContextOnce, { once:true });
+
+  sfxBtn.addEventListener('click', ()=>{
+    startAudioContextOnce();
+    const isMuted = Sound.toggleSfxMute();
+    sfxBtn.textContent = isMuted ? '🔇 SFX' : '🔊 SFX';
+  });
+  musicBtn.addEventListener('click', ()=>{
+    startAudioContextOnce();
+    const isMuted = Sound.toggleMusicMute();
+    musicBtn.textContent = isMuted ? '🔇 MUSIC' : '🎵 MUSIC';
   });
 
   const canvas = document.getElementById('game');
