@@ -267,7 +267,7 @@
       }
     });
     const timeoutPromise = new Promise((resolve)=>{
-      setTimeout(()=> resolve(null), 5000);
+      setTimeout(()=> resolve(null), 15000);
     });
     return Promise.race([tokenPromise, timeoutPromise]);
   }
