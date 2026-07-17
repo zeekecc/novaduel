@@ -277,7 +277,11 @@
       const token = await getTurnstileToken();
       if(!token) throw new Error('no verification token');
       const resp = await fetch(TURN_WORKER_URL + '?token=' + encodeURIComponent(token));
-      if(!resp.ok) throw new Error('worker error');
+      if(!resp.ok){
+        const bodyText = await resp.text().catch(()=>'(could not read body)');
+        console.error('Worker responded with', resp.status, bodyText);
+        throw new Error('worker error: ' + resp.status + ' ' + bodyText);
+      }
       const data = await resp.json();
       if(!data.iceServers || !Array.isArray(data.iceServers)) throw new Error('bad shape');
       return { iceServers: data.iceServers };
