@@ -154,7 +154,7 @@
 </head>
 <body>
 <div class="hdr"><div class="dot"></div><h1>NOVA DUEL <span style="font-size:12px;color:var(--p2-glow);vertical-align:middle;">ONLINE</span></h1><button id="muteBtn" style="padding:6px 12px;font-size:11px;margin-left:14px;">🔊 SOUND</button></div>
-<div id="turnstileBox" style="display:none;"></div>
+<div id="turnstileBox" style="position:fixed;bottom:8px;right:8px;z-index:999;"></div>
 <div id="wrap">
   <div id="msg"></div>
   <canvas id="game" width="920" height="520"></canvas>
@@ -259,7 +259,8 @@
       } else {
         turnstileWidgetId = window.turnstile.render(box, {
           sitekey: TURNSTILE_SITE_KEY,
-          size: 'invisible',
+          appearance: 'interaction-only',
+          execution: 'execute',
           callback: (token)=> resolve(token),
           'error-callback': ()=> resolve(null),
         });
