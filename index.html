@@ -243,16 +243,19 @@
   "use strict";
 
   const TURN_WORKER_URL = 'https://nove-duel.zaiyt50.workers.dev/';
-  const TURNSTILE_SITE_KEY = '0x4AAAAAAD30yMGGLLKCU0mg';
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAD3pxjxOaFcMZEyI';
   const STUN_ONLY = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
 
   let turnstileWidgetId = null;
   function getTurnstileToken(){
-    return new Promise((resolve)=>{
+    const tokenPromise = new Promise((resolve)=>{
       if(!window.turnstile){ resolve(null); return; }
       const box = document.getElementById('turnstileBox');
       if(turnstileWidgetId !== null){
-        window.turnstile.reset(turnstileWidgetId);
+        window.turnstile.execute(turnstileWidgetId, {
+          callback: (token)=> resolve(token),
+          'error-callback': ()=> resolve(null),
+        });
       } else {
         turnstileWidgetId = window.turnstile.render(box, {
           sitekey: TURNSTILE_SITE_KEY,
@@ -260,13 +263,12 @@
           callback: (token)=> resolve(token),
           'error-callback': ()=> resolve(null),
         });
-        return;
       }
-      window.turnstile.execute(turnstileWidgetId, {
-        callback: (token)=> resolve(token),
-        'error-callback': ()=> resolve(null),
-      });
     });
+    const timeoutPromise = new Promise((resolve)=>{
+      setTimeout(()=> resolve(null), 5000);
+    });
+    return Promise.race([tokenPromise, timeoutPromise]);
   }
 
   async function getIceConfig(){
