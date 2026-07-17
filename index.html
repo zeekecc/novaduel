@@ -213,7 +213,7 @@
   <div class="player-box p1" id="p1box">
     <div class="player-name"><span id="p1label">P1 · VANGUARD (HOST)</span><span id="p1hpnum">100</span></div>
     <div class="hpbar"><div class="hpfill" id="p1hp" style="width:100%"></div></div>
-    <div class="keyhint">A/D angle · W/S power · SPACE fire</div>
+    <div class="keyhint">A/D or ←/→ angle · W/S or ↑/↓ power · SPACE or ENTER fire</div>
   </div>
   <div class="center-info">
     <div id="turnLabel">Turn: Player 1</div>
@@ -222,7 +222,7 @@
   <div class="player-box p2" id="p2box">
     <div class="player-name"><span id="p2label">P2 · REVENANT (GUEST)</span><span id="p2hpnum">100</span></div>
     <div class="hpbar"><div class="hpfill" id="p2hp" style="width:100%"></div></div>
-    <div class="keyhint">←/→ angle · ↑/↓ power · ENTER fire</div>
+    <div class="keyhint">A/D or ←/→ angle · W/S or ↑/↓ power · SPACE or ENTER fire</div>
   </div>
 </div>
 <div id="controls">
@@ -238,7 +238,7 @@
   </div>
   <button id="fireBtn">LAUNCH</button>
 </div>
-<div id="help">Connected across two PCs via peer-to-peer WebRTC. <b>Your keys always work for your own tank</b> (A/D/W/S/SPACE if you're P1, arrows/ENTER if you're P2) &mdash; but firing only works on your turn.</div>
+<div id="help">Connected across two PCs via peer-to-peer WebRTC. <b>Both players use the same controls</b> (A/D or ←/→ for angle, W/S or ↑/↓ for power, SPACE or ENTER to fire) &mdash; but firing only works on your turn.</div>
 
 <script>
 (function(){
@@ -855,23 +855,15 @@
   window.addEventListener('keydown', (e)=>{
     if(!connected || gameOver || animating) return;
     if(document.activeElement && document.activeElement.id === 'joinCodeInput') return;
-    const p1Keys = ['a','A','d','D','w','W','s','S',' '];
-    const p2Keys = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
-    if(myIndex===0 && p1Keys.includes(e.key)){
-      e.preventDefault();
-      if(e.key==='a'||e.key==='A') adjustMine(-1,0);
-      else if(e.key==='d'||e.key==='D') adjustMine(1,0);
-      else if(e.key==='w'||e.key==='W') adjustMine(0,1);
-      else if(e.key==='s'||e.key==='S') adjustMine(0,-1);
-      else if(e.key===' ') fire();
-    } else if(myIndex===1 && p2Keys.includes(e.key)){
-      e.preventDefault();
-      if(e.key==='ArrowLeft') adjustMine(-1,0);
-      else if(e.key==='ArrowRight') adjustMine(1,0);
-      else if(e.key==='ArrowUp') adjustMine(0,1);
-      else if(e.key==='ArrowDown') adjustMine(0,-1);
-      else if(e.key==='Enter') fire();
-    }
+    if(!isMyTurn()) return;
+    const handled = ['a','A','d','D','w','W','s','S',' ','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter'];
+    if(!handled.includes(e.key)) return;
+    e.preventDefault();
+    if(e.key==='a'||e.key==='A'||e.key==='ArrowLeft') adjustMine(-1,0);
+    else if(e.key==='d'||e.key==='D'||e.key==='ArrowRight') adjustMine(1,0);
+    else if(e.key==='w'||e.key==='W'||e.key==='ArrowUp') adjustMine(0,1);
+    else if(e.key==='s'||e.key==='S'||e.key==='ArrowDown') adjustMine(0,-1);
+    else if(e.key===' '||e.key==='Enter') fire();
   });
 
   function fire(){
