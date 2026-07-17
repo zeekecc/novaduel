@@ -247,23 +247,23 @@
   const STUN_ONLY = { iceServers: [{ urls: 'stun:stun.cloudflare.com:3478' }] };
 
   let turnstileWidgetId = null;
+  let turnstileResolve = null;
   function getTurnstileToken(){
     const tokenPromise = new Promise((resolve)=>{
+      turnstileResolve = resolve;
       if(!window.turnstile){ resolve(null); return; }
       const box = document.getElementById('turnstileBox');
       if(turnstileWidgetId !== null){
-        window.turnstile.execute(turnstileWidgetId, {
-          callback: (token)=> resolve(token),
-          'error-callback': ()=> resolve(null),
-        });
+        window.turnstile.execute(turnstileWidgetId);
       } else {
         turnstileWidgetId = window.turnstile.render(box, {
           sitekey: TURNSTILE_SITE_KEY,
           appearance: 'interaction-only',
           execution: 'execute',
-          callback: (token)=> resolve(token),
-          'error-callback': ()=> resolve(null),
+          callback: (token)=> { if(turnstileResolve) turnstileResolve(token); },
+          'error-callback': ()=> { if(turnstileResolve) turnstileResolve(null); },
         });
+        window.turnstile.execute(turnstileWidgetId);
       }
     });
     const timeoutPromise = new Promise((resolve)=>{
