@@ -670,6 +670,59 @@
       if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
     }
 
+    function playWin(){
+      if(sfxMuted) return;
+      const c = ensureCtx();
+      resumeCtx();
+      const t0 = c.currentTime;
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i)=>{
+        const nt = t0 + i*0.14;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'square'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, nt);
+        gain.gain.exponentialRampToValueAtTime(0.18, nt+0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, nt+0.35);
+        const filt = c.createBiquadFilter();
+        filt.type = 'lowpass'; filt.frequency.value = 3000;
+        osc.connect(filt); filt.connect(gain); gain.connect(c.destination);
+        osc.start(nt); osc.stop(nt+0.4);
+      });
+      const chordT = t0 + notes.length*0.14 + 0.05;
+      [523.25, 659.25, 783.99].forEach((freq)=>{
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sawtooth'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, chordT);
+        gain.gain.exponentialRampToValueAtTime(0.14, chordT+0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, chordT+1.1);
+        osc.connect(gain); gain.connect(c.destination);
+        osc.start(chordT); osc.stop(chordT+1.15);
+      });
+    }
+
+    function playLose(){
+      if(sfxMuted) return;
+      const c = ensureCtx();
+      resumeCtx();
+      const t0 = c.currentTime;
+      const notes = [392.00, 349.23, 293.66, 220.00];
+      notes.forEach((freq, i)=>{
+        const nt = t0 + i*0.22;
+        const osc = c.createOscillator();
+        const gain = c.createGain();
+        osc.type = 'sawtooth'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, nt);
+        gain.gain.exponentialRampToValueAtTime(0.16, nt+0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, nt+0.5);
+        const filt = c.createBiquadFilter();
+        filt.type = 'lowpass'; filt.frequency.value = 1200;
+        osc.connect(filt); filt.connect(gain); gain.connect(c.destination);
+        osc.start(nt); osc.stop(nt+0.55);
+      });
+    }
+
     function toggleSfxMute(){
       sfxMuted = !sfxMuted;
       return sfxMuted;
@@ -680,7 +733,7 @@
       return musicMuted;
     }
 
-    return { fire, explosion, startMusic, stopMusic, toggleSfxMute, toggleMusicMute, ensureCtx };
+    return { fire, explosion, playWin, playLose, startMusic, stopMusic, toggleSfxMute, toggleMusicMute, ensureCtx };
   })();
 
   const sfxBtn = document.getElementById('sfxBtn');
@@ -797,6 +850,7 @@
     hideOverlay();
     setControlsEnabled(true);
     syncSlidersFromMyPlayer();
+    Sound.startMusic();
     if(broadcast && isHost){
       send({type:'init', terrain: terrain.slice(), wind, currentPlayer,
         hp:[players[0].hp, players[1].hp] });
@@ -817,6 +871,7 @@
     hideOverlay();
     setControlsEnabled(true);
     syncSlidersFromMyPlayer();
+    Sound.startMusic();
     showMsg('Match Start', 1400);
   }
 
@@ -1049,6 +1104,8 @@
   }
 
   function showWinner(winnerIdx){
+    Sound.stopMusic();
+    if(winnerIdx===myIndex) Sound.playWin(); else Sound.playLose();
     document.getElementById('winText').textContent =
       (winnerIdx===0?'Player 1':'Player 2') + ' Wins!' + (winnerIdx===myIndex ? ' 🏆 (You!)' : '');
     setTimeout(()=>{ showScreen('screen-gameover'); }, 700);
