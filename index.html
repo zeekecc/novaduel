@@ -103,7 +103,15 @@
   input[type=range]{ width:140px; accent-color:var(--p2); }
   input[type=text]{
     font-family:'Orbitron',sans-serif; background:#0c1526; border:1px solid var(--line); color:var(--p2-glow);
-    padding:10px 12px; border-radius:6px; font-size:14px; letter-spacing:.1em; text-align:center; width:160px;
+    padding:10px 12px; border-radius:6px; font-size:16px; letter-spacing:.1em; text-align:center; width:160px;
+    -webkit-appearance:none; appearance:none; -webkit-text-fill-color:var(--p2-glow); caret-color:var(--p2-glow);
+    outline:none;
+  }
+  input[type=text]::placeholder{ color:var(--muted); opacity:1; -webkit-text-fill-color:var(--muted); }
+  input[type=text]:focus{ border-color:var(--p2); box-shadow:0 0 0 2px rgba(38,230,255,.25); }
+  input[type=text]:-webkit-autofill{
+    -webkit-box-shadow:0 0 0 1000px #0c1526 inset;
+    -webkit-text-fill-color:var(--p2-glow);
   }
   button{
     font-family:'Orbitron',sans-serif; font-weight:700; font-size:13px; letter-spacing:.06em;
@@ -126,6 +134,9 @@
     position:absolute; inset:0; background:rgba(3,4,10,.9); display:flex;
     align-items:center; justify-content:center; flex-direction:column; gap:16px; backdrop-filter:blur(2px);
     z-index:5; padding:20px; text-align:center;
+  }
+  #screen-menu, #screen-hosting, #screen-joining, #screen-error, #screen-gameover{
+    flex-direction:column; align-items:center; gap:16px; text-align:center; width:100%;
   }
   #overlay h1{ font-family:'Orbitron',sans-serif; font-size:26px; margin:0; letter-spacing:.08em; text-transform:uppercase; }
   #overlay p{ color:var(--muted); font-size:13px; max-width:420px; margin:0; line-height:1.6; }
