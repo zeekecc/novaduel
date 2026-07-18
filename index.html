@@ -440,7 +440,6 @@
     conn.on('close', onDisconnect);
     conn.on('error', onDisconnect);
     hideOverlay();
-    Sound.startMusic();
     if(isHost){
       newRound(true);
     } else {
@@ -486,6 +485,7 @@
     let musicMuted = false;
     let musicNodes = null;
     let musicTimer = null;
+    let musicStarting = false;
 
     function ensureCtx(){
       if(!ctx){
@@ -662,11 +662,17 @@
     }
 
     function startMusic(){
-      if(musicTimer) return;
-      resumeCtx().then(scheduleMusicLoop);
+      if(musicTimer || musicStarting) return;
+      musicStarting = true;
+      resumeCtx().then(()=>{
+        musicStarting = false;
+        if(musicTimer) return;
+        scheduleMusicLoop();
+      });
     }
 
     function stopMusic(){
+      musicStarting = false;
       if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
     }
 
