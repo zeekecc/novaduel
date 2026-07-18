@@ -161,30 +161,34 @@
   }
   @keyframes spin{to{transform:rotate(360deg)}}
   #backBtn{ position:absolute; top:10px; left:12px; font-size:10px; padding:6px 10px; }
+  #rotateHint{
+    font-size:10px; color:var(--accent); text-align:center; padding:3px 8px;
+    letter-spacing:.04em; cursor:pointer; flex:0 0 auto;
+  }
 
   @media (max-width: 680px){
-    .hdr{ padding:8px 0 4px; gap:6px; }
-    .hdr h1{ font-size:16px; }
+    .hdr{ padding:6px 0 3px; gap:5px; }
+    .hdr h1{ font-size:14px; }
     .hdr .dot{ width:6px; height:6px; }
-    #sfxBtn, #musicBtn{ font-size:9px !important; padding:5px 8px !important; margin-left:6px !important; }
+    #sfxBtn, #musicBtn{ font-size:9px !important; padding:4px 7px !important; margin-left:5px !important; }
 
-    #hud{ padding:6px 8px; gap:6px; }
-    .player-box{ padding:6px 8px; }
+    #hud{ padding:5px 7px; gap:5px; }
+    .player-box{ padding:5px 7px; }
     .player-name{ font-size:10px; }
-    .hpbar{ height:7px; margin-top:5px; }
+    .hpbar{ height:6px; margin-top:4px; }
     .keyhint{ display:none; }
-    .center-info{ min-width:90px; padding:0 6px; }
-    #turnLabel{ font-size:10px; }
-    #windLabel{ font-size:10px; }
+    .center-info{ min-width:80px; padding:0 5px; }
+    #turnLabel{ font-size:9px; }
+    #windLabel{ font-size:9px; margin-top:2px; }
 
-    #controls{ padding:8px 8px 4px; gap:8px; }
-    .ctrl-group{ padding:5px 8px; flex:1 1 auto; min-width:120px; }
+    #controls{ padding:6px 8px 3px; gap:6px; }
+    .ctrl-group{ padding:4px 7px; flex:1 1 auto; min-width:110px; }
     .ctrl-group label{ font-size:9px; }
-    .ctrl-group span{ font-size:12px; width:30px; }
-    input[type=range]{ width:100%; min-width:70px; height:28px; }
+    .ctrl-group span{ font-size:11px; width:28px; }
+    input[type=range]{ width:100%; min-width:70px; height:26px; }
     #fireBtn{ flex:1 1 100%; order:3; }
 
-    button{ padding:12px 16px; font-size:12px; min-height:44px; }
+    button{ padding:10px 16px; font-size:12px; min-height:40px; }
 
     #help{ display:none; }
 
@@ -196,11 +200,50 @@
     #roomCodeDisplay{ font-size:18px; padding:10px 12px; }
     input[type=text]{ width:100%; max-width:220px; }
   }
+
+  @media (max-width: 680px) and (orientation: portrait){
+    #rotateHint.visible{ display:block; }
+  }
+
+  @media (max-width: 900px) and (orientation: landscape){
+    .hdr{ padding:2px 0; gap:4px; }
+    .hdr h1{ font-size:11px; }
+    .hdr .dot{ width:5px; height:5px; }
+    #sfxBtn, #musicBtn{ font-size:8px !important; padding:3px 6px !important; margin-left:4px !important; }
+
+    #hud{ padding:3px 6px; gap:4px; }
+    .player-box{ padding:3px 6px; }
+    .player-name{ font-size:8px; }
+    .hpbar{ height:5px; margin-top:2px; }
+    .keyhint{ display:none; }
+    .center-info{ min-width:55px; padding:0 4px; }
+    #turnLabel{ font-size:8px; }
+    #windLabel{ font-size:8px; margin-top:1px; }
+
+    #controls{ padding:3px 6px; gap:6px; }
+    .ctrl-group{ padding:3px 6px; min-width:0; }
+    .ctrl-group label{ font-size:8px; }
+    .ctrl-group span{ font-size:10px; width:24px; }
+    input[type=range]{ width:100px; height:20px; }
+    #fireBtn{ flex:0 0 auto; order:0; }
+
+    button{ padding:6px 12px; font-size:10px; min-height:30px; }
+
+    #help{ display:none; }
+  }
+
+  @media (max-height: 420px){
+    .hdr{ padding:2px 0; }
+    .hdr h1{ font-size:10px; }
+    #controls{ padding:2px 6px; }
+    button{ min-height:26px; padding:5px 10px; }
+  }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 <div class="hdr"><div class="dot"></div><h1>NOVA DUEL <span style="font-size:12px;color:var(--p2-glow);vertical-align:middle;">ONLINE</span></h1><button id="sfxBtn" style="padding:6px 12px;font-size:11px;margin-left:14px;">🔊 SFX</button><button id="musicBtn" style="padding:6px 12px;font-size:11px;margin-left:8px;">🎵 MUSIC</button></div>
+<div id="rotateHint" style="display:none;">↻ Rotate your phone for a bigger view</div>
 <div id="turnstileOverlay" style="display:none; position:fixed; inset:0; z-index:999; background:rgba(3,4,10,.85); align-items:center; justify-content:center; backdrop-filter:blur(2px);">
   <div id="turnstileBox"></div>
 </div>
@@ -1302,6 +1345,21 @@
   updateHUD();
   requestAnimationFrame(step);
   showScreen('screen-menu');
+
+  const rotateHint = document.getElementById('rotateHint');
+  let rotateHintDismissed = false;
+  function updateRotateHint(){
+    if(rotateHintDismissed) return;
+    const isNarrowPortrait = window.innerWidth <= 680 && window.innerHeight > window.innerWidth;
+    rotateHint.classList.toggle('visible', isNarrowPortrait);
+  }
+  rotateHint.addEventListener('click', ()=>{
+    rotateHintDismissed = true;
+    rotateHint.classList.remove('visible');
+  });
+  window.addEventListener('resize', updateRotateHint);
+  window.addEventListener('orientationchange', updateRotateHint);
+  updateRotateHint();
 })();
 </script>
 </body>
