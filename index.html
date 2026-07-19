@@ -920,16 +920,43 @@
 
   function genTerrain(seed){
     terrain = [];
-    let baseline = H * 0.66;
+    const baseline = H * 0.74;
+    const rand = mulberry32(seed);
+    const numMounds = 6 + Math.floor(rand()*4);
+    const mounds = [];
+    for(let m=0;m<numMounds;m++){
+      mounds.push({
+        cx: rand()*W,
+        radius: 85 + rand()*170,
+        height: 45 + rand()*115
+      });
+    }
     for(let i=0;i<=TERRAIN_SEGMENTS;i++){
-      const y = baseline
-        + Math.sin(i*0.25 + seed)*30
-        + Math.sin(i*0.07 + seed*1.7)*46
-        + Math.cos(i*0.5 + seed*0.3)*13;
+      const x = (i/TERRAIN_SEGMENTS)*W;
+      let rise = 0;
+      for(const mnd of mounds){
+        const dx = x - mnd.cx;
+        const t = Math.max(0, 1 - (dx*dx)/(mnd.radius*mnd.radius));
+        const contribution = mnd.height * t*t*t;
+        if(contribution > rise) rise = contribution;
+      }
+      const texture = Math.sin(i*0.6+seed)*4 + Math.sin(i*1.35+seed*2.3)*2.5;
+      let y = baseline - rise + texture;
+      y = Math.max(H*0.14, Math.min(H-70, y));
       terrain.push(y);
     }
     flattenAt(130, 60);
     flattenAt(790, 60);
+  }
+
+  function mulberry32(seed){
+    let a = (seed*1000) >>> 0;
+    return function(){
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
 
   function flattenAt(px, width){
@@ -1423,14 +1450,35 @@
     const grad = ctx.createLinearGradient(0, H*0.6, 0, H);
     grad.addColorStop(0, '#241a3d'); grad.addColorStop(0.4, '#160f2b'); grad.addColorStop(1, '#08061a');
     ctx.fillStyle = grad; ctx.fill();
+
+    const CRUST = 24;
+    ctx.beginPath();
+    for(let i=0;i<=TERRAIN_SEGMENTS;i++){
+      const x = (i/TERRAIN_SEGMENTS)*W;
+      if(i===0) ctx.moveTo(x, terrain[i]); else ctx.lineTo(x, terrain[i]);
+    }
+    for(let i=TERRAIN_SEGMENTS;i>=0;i--){
+      const x = (i/TERRAIN_SEGMENTS)*W;
+      const wobble = Math.sin(i*0.4)*3;
+      ctx.lineTo(x, terrain[i] + CRUST + wobble);
+    }
+    ctx.closePath();
+    const crustGrad = ctx.createLinearGradient(0, 0, 0, H);
+    crustGrad.addColorStop(0, '#c65bff');
+    crustGrad.addColorStop(0.55, '#7b3ac9');
+    crustGrad.addColorStop(1, '#3a1a66');
+    ctx.fillStyle = crustGrad; ctx.fill();
+
     ctx.beginPath();
     for(let i=0;i<=TERRAIN_SEGMENTS;i++){ const x=(i/TERRAIN_SEGMENTS)*W; if(i===0) ctx.moveTo(x,terrain[i]); else ctx.lineTo(x,terrain[i]); }
-    ctx.strokeStyle = 'rgba(180,107,255,0.55)'; ctx.lineWidth = 1.5;
-    ctx.shadowColor = '#b46bff'; ctx.shadowBlur = 6; ctx.stroke(); ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(38,230,255,0.18)'; ctx.lineWidth = 1;
-    for(let i=6;i<TERRAIN_SEGMENTS;i+=14){
+    ctx.strokeStyle = 'rgba(255,180,255,0.85)'; ctx.lineWidth = 2;
+    ctx.shadowColor = '#ff9dfa'; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = 'rgba(38,230,255,0.22)'; ctx.lineWidth = 1;
+    for(let i=5;i<TERRAIN_SEGMENTS;i+=10){
       const x=(i/TERRAIN_SEGMENTS)*W, y=terrain[i];
-      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+(Math.sin(i)*6), y+18+(i%20)); ctx.stroke();
+      const len = 8 + (i%17);
+      ctx.beginPath(); ctx.moveTo(x,y+3); ctx.lineTo(x+(Math.sin(i)*3), y+3+len); ctx.stroke();
     }
   }
 
