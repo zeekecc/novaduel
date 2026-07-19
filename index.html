@@ -1296,8 +1296,9 @@
     players.forEach((pl)=>{
       const dx = pl.x - x, dy = pl.y - y;
       const dist = Math.sqrt(dx*dx+dy*dy);
-      if(dist < RADIUS+20){
-        const dmg = Math.max(0, (1 - dist/(RADIUS+20)) * 34);
+      const blastRadius = RADIUS + MECH_HIT_RADIUS;
+      if(dist < blastRadius){
+        const dmg = Math.max(0, (1 - dist/blastRadius) * 34);
         pl.hp -= dmg;
       }
     });
