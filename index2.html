@@ -1084,6 +1084,7 @@
     players[0].angle = 45; players[0].power = 60;
     players[1].angle = 135; players[1].power = 60;
     players[0].moveBudget = MOVE_BUDGET; players[1].moveBudget = MOVE_BUDGET;
+    players[myIndex].mechType = myMechType;
     currentPlayer = 0;
     gameOver = false;
     projectile = null;
@@ -1095,6 +1096,7 @@
     setControlsEnabled(true);
     syncSlidersFromMyPlayer();
     Sound.startMusic();
+    showMsg('You: ' + (myMechType==='laser' ? '⚡ Laser Mech' : '🛡 Vanguard'), 2200);
     if(broadcast && isHost){
       send({type:'init', terrain: terrain.slice(), wind, currentPlayer,
         hp:[players[0].hp, players[1].hp] });
@@ -1110,6 +1112,7 @@
     players[0].angle = 45; players[0].power = 60;
     players[1].angle = 135; players[1].power = 60;
     players[0].moveBudget = MOVE_BUDGET; players[1].moveBudget = MOVE_BUDGET;
+    players[myIndex].mechType = myMechType;
     settlePlayers();
     gameOver = false; projectile = null; particles = []; sparks = [];
     updateHUD(); updateWindLabel();
@@ -1118,7 +1121,7 @@
     setControlsEnabled(true);
     syncSlidersFromMyPlayer();
     Sound.startMusic();
-    showMsg('Match Start', 1400);
+    showMsg('You: ' + (myMechType==='laser' ? '⚡ Laser Mech' : '🛡 Vanguard'), 2200);
   }
 
   function updateHUD(){
